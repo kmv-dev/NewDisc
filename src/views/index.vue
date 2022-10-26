@@ -20,8 +20,13 @@
         <span class="sort__count">{{ cards.length }} результатов</span>
         <div class="sort__action">
           <span class="sort__label">Сортировать по:</span>
-          <button>Цене</button>
-          <button>Алфавиту</button>
+          <div class="sort__inner">
+            <button v-for="(sort, index) in sortItems" class="sort__btn" :class="{active : index === currentSort}" @click="sortCourse(index, sort.nameMethod)" :key="sort.id">
+              <span class="sort__name">{{sort.nameMethod}}</span>
+              <span v-if="isActiveStatus === 1 && index === currentSort" class="sort__icon icon-short_up" :class="{first: index === 0}"></span>
+              <span v-else-if="isActiveStatus === 0 && index === currentSort" class="sort__icon icon-short_down" :class="{last: index === 0}"></span>
+            </button>
+          </div>
         </div>
       </div>
       <div class="catalog__cards">
@@ -73,12 +78,25 @@ export default {
     return {
       pageNumber: 0,
       size: 9,
-      searchValue: ''
+      searchValue: '',
+      sortMethodCost: 'high',
+      sortMethodAlphabet: 'start',
+      currentSort: 1,
+      isActiveStatus: 1,
+      sortItems: [
+        {
+          nameMethod: 'Цене'
+        },
+        {
+          nameMethod: 'Алфавиту'
+        }
+      ]
     }
   },
   mounted () {
     this.searchValue = localStorage.getItem('searchValue') || ''
     this.search(this.searchValue)
+    this.handleSortMethod(this.sortMethodAlphabet)
   },
   watch: {
     searchValue () {
@@ -139,11 +157,37 @@ export default {
   },
   methods: {
     ...mapActions({
-      handleSearchValue: 'searchCourse'
+      handleSearchValue: 'searchCourse',
+      handleSortMethod: 'sortCourse'
     }),
     search () {
       this.handleSearchValue(this.searchValue)
       localStorage.setItem('searchValue', this.searchValue)
+    },
+    sortCourse (i, name) {
+      this.currentSort = i
+      if (i === 0 && name === 'Цене') {
+        if (this.sortMethodCost === 'high') {
+          this.sortMethodCost = 'low'
+          this.isActiveStatus = 1
+          this.handleSortMethod(this.sortMethodCost)
+        } else {
+          this.sortMethodCost = 'high'
+          this.isActiveStatus = 0
+          this.handleSortMethod(this.sortMethodCost)
+        }
+      }
+      if (i === 1 && name === 'Алфавиту') {
+        if (this.sortMethodAlphabet === 'start') {
+          this.sortMethodAlphabet = 'end'
+          this.isActiveStatus = 0
+          this.handleSortMethod(this.sortMethodAlphabet)
+        } else {
+          this.sortMethodAlphabet = 'start'
+          this.isActiveStatus = 1
+          this.handleSortMethod(this.sortMethodAlphabet)
+        }
+      }
     },
     nextPage () {
       this.pageNumber++
@@ -249,6 +293,15 @@ export default {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
+    &__inner {
+      display: flex;
+      justify-content: space-around;
+      min-width: 130px;
+    }
+    &__action {
+      display: flex;
+      align-items: center;
+    }
     &__count {
       font-weight: 400;
       font-size: 14px;
@@ -256,9 +309,33 @@ export default {
     }
     &__label {
       font-weight: 400;
-      font-size: 15px;
+      font-size: 14px;
       color: #9DB0BF;
       margin-right: 15px;
+    }
+    &__btn {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      font-weight: 400;
+      font-size: 14px;
+      color: #0066B3;
+      & .sort__name {
+        border-bottom: 1px dashed #0066B3;
+      }
+      &.active {
+        color: #4C5A79;
+      }
+      &.active .sort__name {
+        border: none
+      }
+      &:hover {
+        color: #EB3737;
+      }
+
+    }
+    &__icon {
+      color: #EB3737;
     }
   }
   .card {
@@ -271,7 +348,7 @@ export default {
     overflow: hidden;
     min-height: 400px;
     padding: 30px;
-    background: linear-gradient(0deg, #4C5A79 0%, rgba(76, 90, 121, 0) 60%);
+    background: linear-gradient(0deg, #4C5A79 0%, rgba(76, 90, 121, 0.2) 50%);
     transition: 0.3s ease-in-out;
     cursor: pointer;
     max-height: 400px;
@@ -316,18 +393,17 @@ export default {
       margin: -30px;
     }
     &__series {
-      overflow: hidden;
-      padding: 2px 10px;
+      padding: 1px 8px;
       background: #0066B3;
       border-radius: 2px;
       color: #ffffff;
       font-weight: 400;
-      font-size: 14px;
+      font-size: 13px;
       margin-bottom: 12px;
     }
     &__title {
       font-weight: 600;
-      font-size: 18px;
+      font-size: 17px;
       line-height: 25px;
       text-transform: uppercase;
       color: #ffffff;
