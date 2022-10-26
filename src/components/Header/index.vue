@@ -8,7 +8,7 @@
 
 <style lang="scss" scoped>
 .header {
-  padding: 30px 0;
+  padding: 30px 0 5px;
   &__inner {
     @include container;
   }
