@@ -19,12 +19,11 @@
       <div class="catalog__sort sort">
         <span class="sort__count">{{ cards.length }} результатов</span>
         <div class="sort__action">
-          <span class="sort__label">Сортировать по:</span>
+          <span class="sort__label"><span>Сортировать</span> по:</span>
           <div class="sort__inner">
             <button v-for="(sort, index) in sortItems" class="sort__btn" :class="{active : index === currentSort}" @click="sortCourse(index, sort.nameMethod)" :key="sort.id">
               <span class="sort__name">{{sort.nameMethod}}</span>
-              <span v-if="isActiveStatus === 1 && index === currentSort" class="sort__icon icon-short_up" :class="{first: index === 0}"></span>
-              <span v-else-if="isActiveStatus === 0 && index === currentSort" class="sort__icon icon-short_down" :class="{last: index === 0}"></span>
+              <span v-if="index === currentSort" class="sort__icon" :class="iconClass"></span>
             </button>
           </div>
         </div>
@@ -34,8 +33,10 @@
           <div class="card__bg"></div>
           <img class="card__img" :src="card.preview_img_path" alt="banner">
           <div class="card__content">
-            <span class="card__series">{{ card.series }}</span>
-            <span class="card__title">{{ card.title }}</span>
+            <div class="card__inner">
+              <span class="card__series">{{ card.series }}</span>
+              <span class="card__title">{{ card.title }}</span>
+            </div>
             <div class="card__price">
               <span class="card__cost">{{ card.cost }}</span>
               <span class="card__currency">{{ card.cost_currency }}</span>
@@ -79,10 +80,10 @@ export default {
       pageNumber: 0,
       size: 9,
       searchValue: '',
-      sortMethodCost: 'high',
-      sortMethodAlphabet: 'start',
+      sortMethod: 'start',
       currentSort: 1,
       isActiveStatus: 1,
+      width: window.innerWidth,
       sortItems: [
         {
           nameMethod: 'Цене'
@@ -93,16 +94,45 @@ export default {
       ]
     }
   },
+  created () {
+    window.addEventListener('resize', this.updateWidth)
+  },
   mounted () {
+    if (this.width <= 991) {
+      this.size = 6
+    } else {
+      this.size = 9
+    }
+    if (this.width <= 575) {
+      this.size = 3
+    }
     this.searchValue = localStorage.getItem('searchValue') || ''
+    this.sortMethod = localStorage.getItem('sortMethod') || 'start'
+    if (this.sortMethod === 'low' || this.sortMethod === 'high') {
+      this.currentSort = 0
+    } else {
+      this.currentSort = 1
+    }
     this.search(this.searchValue)
-    this.handleSortMethod(this.sortMethodAlphabet)
+    this.handleSortMethod(this.sortMethod)
   },
   watch: {
+    width () {
+      if (this.width <= 991) {
+        this.size = 6
+      } else {
+        this.size = 9
+      }
+      if (this.width <= 575) {
+        this.size = 3
+      }
+    },
     searchValue () {
       if (this.searchValue === '') {
-        location.reload()
+        this.getCards()
         localStorage.removeItem('searchValue')
+        this.sortMethod = localStorage.getItem('sortMethod') || 'start'
+        this.handleSortMethod(this.sortMethod)
       }
     }
   },
@@ -110,6 +140,14 @@ export default {
     ...mapGetters({
       cards: 'getCards'
     }),
+    iconClass () {
+      return [
+        {
+          'icon-short_down': this.sortMethod === 'high' || this.sortMethod === 'start',
+          'icon-short_up': this.sortMethod === 'low' || this.sortMethod === 'end'
+        }
+      ]
+    },
     pageCount () {
       const l = this.cards.length
       const s = this.size
@@ -158,34 +196,43 @@ export default {
   methods: {
     ...mapActions({
       handleSearchValue: 'searchCourse',
-      handleSortMethod: 'sortCourse'
+      handleSortMethod: 'sortCourse',
+      getCards: 'getCards'
     }),
+    updateWidth () {
+      this.width = window.innerWidth
+    },
     search () {
       this.handleSearchValue(this.searchValue)
       localStorage.setItem('searchValue', this.searchValue)
+      this.handleSortMethod(this.sortMethod)
     },
     sortCourse (i, name) {
       this.currentSort = i
       if (i === 0 && name === 'Цене') {
-        if (this.sortMethodCost === 'high') {
-          this.sortMethodCost = 'low'
+        if (this.sortMethod === 'high') {
+          this.sortMethod = 'low'
           this.isActiveStatus = 1
-          this.handleSortMethod(this.sortMethodCost)
+          this.handleSortMethod(this.sortMethod)
+          localStorage.setItem('sortMethod', this.sortMethod)
         } else {
-          this.sortMethodCost = 'high'
+          this.sortMethod = 'high'
           this.isActiveStatus = 0
-          this.handleSortMethod(this.sortMethodCost)
+          this.handleSortMethod(this.sortMethod)
+          localStorage.setItem('sortMethod', this.sortMethod)
         }
       }
       if (i === 1 && name === 'Алфавиту') {
-        if (this.sortMethodAlphabet === 'start') {
-          this.sortMethodAlphabet = 'end'
+        if (this.sortMethod === 'start') {
+          this.sortMethod = 'end'
           this.isActiveStatus = 0
-          this.handleSortMethod(this.sortMethodAlphabet)
+          this.handleSortMethod(this.sortMethod)
+          localStorage.setItem('sortMethod', this.sortMethod)
         } else {
-          this.sortMethodAlphabet = 'start'
+          this.sortMethod = 'start'
           this.isActiveStatus = 1
-          this.handleSortMethod(this.sortMethodAlphabet)
+          this.handleSortMethod(this.sortMethod)
+          localStorage.setItem('sortMethod', this.sortMethod)
         }
       }
     },
@@ -220,6 +267,10 @@ export default {
     font-size: 42px;
     color: #4C5A79;
     margin-bottom: 30px;
+    @include _575 {
+      font-size: 35px;
+      margin-bottom: 15px
+    }
   }
   &__inner {
     @include container;
@@ -289,6 +340,17 @@ export default {
     grid-gap: 30px;
     margin-bottom: 45px;
   }
+  @include _991 {
+    &__cards{
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 16px;
+    }
+  }
+  @include _575 {
+    &__cards{
+      grid-template-columns: 1fr;
+    }
+  }
   .sort {
     display: flex;
     justify-content: space-between;
@@ -312,6 +374,14 @@ export default {
       font-size: 14px;
       color: #9DB0BF;
       margin-right: 15px;
+      @include _575 {
+        margin-right: 4px;
+      }
+      & span {
+        @include _575 {
+          display: none;
+        }
+      }
     }
     &__btn {
       display: flex;
@@ -374,6 +444,11 @@ export default {
     &:focus {
       box-shadow: inset 0px 10px 12px rgba(0, 0, 0, 0.4);
     }
+    &__inner {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
     &__content {
       position: relative;
       display: flex;
@@ -383,6 +458,7 @@ export default {
       padding-top: 30px;
       transform: translateY(30px);
       transition: 0.3s ease-in-out;
+      min-height: 210px;
     }
     &__img {
       position: absolute;
@@ -408,6 +484,12 @@ export default {
       text-transform: uppercase;
       color: #ffffff;
       margin-bottom: 20px;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      line-height: 1.3em;
+      height: 3.9em;
     }
     &__price {
       margin-top: auto;
@@ -463,9 +545,19 @@ export default {
       text-decoration: none;
       margin: 0 5px;
       transition: 0.3s ease-in-out;
+      @include _575 {
+        min-height: 35px;
+        min-width: 35px;
+        font-size: 14px;
+        margin: 0 2px;
+      }
       &_dots {
         background: #ffffff;
         color: #9DB0BF;
+        @include _575 {
+          min-height: 10px;
+          min-width: 10px;
+        }
       }
       &:hover {
         background: #E2E8F3;
@@ -488,6 +580,9 @@ export default {
       border-radius: 3px;
       background: #F0F4FC;
       transition: 0.3s ease-in-out;
+      @include _575 {
+        display: none;
+      }
       &.disabled {
         pointer-events: none;
       }
