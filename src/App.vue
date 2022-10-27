@@ -26,7 +26,7 @@ export default {
   justify-content: space-between;
   font-family: $roboto;
   &__content {
-    padding: 12px;
+    padding: 12px 0;
     flex-grow: 1;
   }
 }
