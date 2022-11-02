@@ -73,6 +73,11 @@
 </template>
 
 <script>
+import {
+  addDataToLocalStorage,
+  getDataFromLocalStorage,
+  removeDataFromLocalStorage
+} from '../api/localStorage'
 import { mapActions, mapGetters } from 'vuex'
 export default {
   data () {
@@ -98,41 +103,21 @@ export default {
     window.addEventListener('resize', this.updateWidth)
   },
   mounted () {
-    if (this.width <= 991) {
-      this.size = 6
-    } else {
-      this.size = 9
-    }
-    if (this.width <= 575) {
-      this.size = 3
-    }
-    this.searchValue = localStorage.getItem('searchValue') || ''
-    this.sortMethod = localStorage.getItem('sortMethod') || 'start'
-    if (this.sortMethod === 'low' || this.sortMethod === 'high') {
-      this.currentSort = 0
-    } else {
-      this.currentSort = 1
-    }
+    this.resizeAmountCards()
+    this.searchValue = getDataFromLocalStorage('searchValue') || ''
+    this.sortMethod = getDataFromLocalStorage('sortMethod') || 'start'
+    this.checkSortMethod()
     this.search(this.searchValue)
     this.handleSortMethod(this.sortMethod)
   },
   watch: {
     width () {
-      if (this.width <= 991) {
-        this.size = 6
-      } else {
-        this.size = 9
-      }
-      if (this.width <= 575) {
-        this.size = 3
-      }
+      this.resizeAmountCards()
     },
     searchValue () {
       if (this.searchValue === '') {
         this.getCards()
-        localStorage.removeItem('searchValue')
-        this.sortMethod = localStorage.getItem('sortMethod') || 'start'
-        this.handleSortMethod(this.sortMethod)
+        removeDataFromLocalStorage('searchValue')
       }
     }
   },
@@ -199,13 +184,31 @@ export default {
       handleSortMethod: 'sortCourse',
       getCards: 'getCards'
     }),
+    checkSortMethod () {
+      if (this.sortMethod === 'low' || this.sortMethod === 'high') {
+        this.currentSort = 0
+      } else {
+        this.currentSort = 1
+      }
+    },
+    resizeAmountCards () {
+      if (this.width <= 991) {
+        this.size = 6
+      } else {
+        this.size = 9
+      }
+      if (this.width <= 575) {
+        this.size = 3
+      }
+    },
     updateWidth () {
       this.width = window.innerWidth
     },
     search () {
       this.handleSearchValue(this.searchValue)
-      localStorage.setItem('searchValue', this.searchValue)
-      this.handleSortMethod(this.sortMethod)
+      if (this.searchValue !== '') {
+        addDataToLocalStorage('searchValue', this.searchValue)
+      }
     },
     sortCourse (i, name) {
       this.currentSort = i
@@ -214,12 +217,12 @@ export default {
           this.sortMethod = 'low'
           this.isActiveStatus = 1
           this.handleSortMethod(this.sortMethod)
-          localStorage.setItem('sortMethod', this.sortMethod)
+          addDataToLocalStorage('sortMethod', this.sortMethod)
         } else {
           this.sortMethod = 'high'
           this.isActiveStatus = 0
           this.handleSortMethod(this.sortMethod)
-          localStorage.setItem('sortMethod', this.sortMethod)
+          addDataToLocalStorage('sortMethod', this.sortMethod)
         }
       }
       if (i === 1 && name === 'Алфавиту') {
@@ -227,12 +230,12 @@ export default {
           this.sortMethod = 'end'
           this.isActiveStatus = 0
           this.handleSortMethod(this.sortMethod)
-          localStorage.setItem('sortMethod', this.sortMethod)
+          addDataToLocalStorage('sortMethod', this.sortMethod)
         } else {
           this.sortMethod = 'start'
           this.isActiveStatus = 1
           this.handleSortMethod(this.sortMethod)
-          localStorage.setItem('sortMethod', this.sortMethod)
+          addDataToLocalStorage('sortMethod', this.sortMethod)
         }
       }
     },
