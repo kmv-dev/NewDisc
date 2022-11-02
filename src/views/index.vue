@@ -17,19 +17,36 @@
         </button>
       </div>
       <div class="catalog__sort sort">
-        <span class="sort__count">{{ cards.length }} результатов</span>
+        <span class="sort__count">
+          {{ cards.length }} {{getEnding(cards.length, 'результат', 'результата', 'результатов')}}
+        </span>
         <div class="sort__action">
           <span class="sort__label"><span>Сортировать</span> по:</span>
           <div class="sort__inner">
-            <button v-for="(sort, index) in sortItems" class="sort__btn" :class="{active : index === currentSort}" @click="sortCourse(index, sort.nameMethod)" :key="sort.id">
+            <button
+              v-for="(sort, index) in sortItems"
+              :key="sort.id"
+              class="sort__btn"
+              :class="{active : index === currentSort}"
+              @click="sortCourse(index, sort.nameMethod)"
+            >
               <span class="sort__name">{{sort.nameMethod}}</span>
-              <span v-if="index === currentSort" class="sort__icon" :class="iconClass"></span>
+              <span
+                v-if="index === currentSort"
+                class="sort__icon"
+                 :class="iconClass"
+              ></span>
             </button>
           </div>
         </div>
       </div>
       <div class="catalog__cards">
-        <div class="catalog__card card" v-for="card in paginatedData" :key="card.id" :tabindex="card.id">
+        <div
+          class="catalog__card card"
+          v-for="card in paginatedData"
+          :key="card.id"
+          :tabindex="card.id"
+        >
           <div class="card__bg"></div>
           <img class="card__img" :src="card.preview_img_path" alt="banner">
           <div class="card__content">
@@ -50,7 +67,11 @@
       </div>
       <div class="catalog__pagination" v-if="formedPages && pageCount !== 1">
         <ul class="pagination">
-          <button class="pagination__button" :class="navBack" @click="prevPage">
+          <button
+            class="pagination__button"
+            :class="navBack"
+            @click="prevPage"
+          >
             <span class="pagination__icon icon-chevron_left"></span>
           </button>
           <li v-for="page in formedPages" class="pagination__item" :key="page">
@@ -60,9 +81,21 @@
               >
                 ...
               </div>
-              <a v-else class="pagination__page" :class="active(page)" href="#" @click="goToPage(page)">{{page}}</a>
+              <a
+                v-else
+                class="pagination__page"
+                :class="active(page)"
+                href="#"
+                @click="goToPage(page)"
+              >
+                {{page}}
+              </a>
           </li>
-          <button class="pagination__button" :class="navForward" @click="nextPage">
+          <button
+            class="pagination__button"
+            :class="navForward"
+            @click="nextPage"
+          >
             <span class="pagination__icon icon-chevron_right"></span>
           </button>
         </ul>
@@ -184,23 +217,6 @@ export default {
       handleSortMethod: 'sortCourse',
       getCards: 'getCards'
     }),
-    checkSortMethod () {
-      if (this.sortMethod === 'low' || this.sortMethod === 'high') {
-        this.currentSort = 0
-      } else {
-        this.currentSort = 1
-      }
-    },
-    resizeAmountCards () {
-      if (this.width <= 991) {
-        this.size = 6
-      } else {
-        this.size = 9
-      }
-      if (this.width <= 575) {
-        this.size = 3
-      }
-    },
     updateWidth () {
       this.width = window.innerWidth
     },
@@ -237,6 +253,38 @@ export default {
           this.handleSortMethod(this.sortMethod)
           addDataToLocalStorage('sortMethod', this.sortMethod)
         }
+      }
+    },
+    getEnding (number, one, two, five) {
+      let n = Math.abs(number)
+      n %= 100
+      if (n >= 5 && n <= 20) {
+        return five
+      }
+      n %= 10
+      if (n === 1) {
+        return one
+      }
+      if (n >= 2 && n <= 4) {
+        return two
+      }
+      return five
+    },
+    checkSortMethod () {
+      if (this.sortMethod === 'low' || this.sortMethod === 'high') {
+        this.currentSort = 0
+      } else {
+        this.currentSort = 1
+      }
+    },
+    resizeAmountCards () {
+      if (this.width <= 991) {
+        this.size = 6
+      } else {
+        this.size = 9
+      }
+      if (this.width <= 575) {
+        this.size = 3
       }
     },
     nextPage () {
